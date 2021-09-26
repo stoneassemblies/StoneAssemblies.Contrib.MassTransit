@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
-	        <Description>Extensible message based authorization framework built on top of MassTransit.</Description>
-		<PackageTags>netcore;masstransit;authorization;messages</PackageTags>
+	        <Description>StoneAssemblies useful extensions for MassTransit</Description>
+		<PackageTags>netcore;masstransit;stoneassemblies;contrib;mutilbus</PackageTags>
 	</PropertyGroup>
 
 	<ItemGroup>
