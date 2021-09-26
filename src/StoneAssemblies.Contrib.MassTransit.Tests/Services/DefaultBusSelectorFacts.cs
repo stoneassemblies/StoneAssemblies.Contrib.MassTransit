@@ -1,4 +1,10 @@
-﻿namespace StoneAssemblies.Contrib.MassTransit.Tests.Services
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="DefaultBusSelectorFacts.cs" company="Stone Assemblies">
+// Copyright © 2021 - 2021 Stone Assemblies. All rights reserved.
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace StoneAssemblies.Contrib.MassTransit.Tests.Services
 {
     using System;
     using System.Threading.Tasks;
@@ -13,26 +19,47 @@
 
     using Xunit;
 
+    /// <summary>
+    /// The default bus selector facts.
+    /// </summary>
     public class DefaultBusSelectorFacts
     {
+        /// <summary>
+        /// The constructor method.
+        /// </summary>
         public class The_Constructor_Method
         {
+            /// <summary>
+            /// Throws argument null exception if predicate is null.
+            /// </summary>
             [Fact]
-            public async Task Throws_ArgumentNullException_If_Predicate_Is_Null()
+            public void Throws_ArgumentNullException_If_Predicate_Is_Null()
             {
                 Assert.Throws<ArgumentNullException>(() => new DefaultBusSelector<DemoMessage>(null));
             }
 
+            /// <summary>
+            /// Succeeds with none null arguments.
+            /// </summary>
             [Fact]
-            public async Task Succeeds_With_None_Null_Arguments()
+            public void Succeeds_With_None_Null_Arguments()
             {
                 var defaultBusSelector = new DefaultBusSelector<DemoMessage>(new Mock<IBus>().Object);
                 Assert.NotNull(defaultBusSelector);
             }
         }
 
+        /// <summary>
+        /// The select client factories method.
+        /// </summary>
         public class The_SelectClientFactories_Method
         {
+            /// <summary>
+            /// Returns the client factory.
+            /// </summary>
+            /// <returns>
+            /// The <see cref="Task"/>.
+            /// </returns>
             [Fact]
             public async Task Returns_The_ClientFactory()
             {
