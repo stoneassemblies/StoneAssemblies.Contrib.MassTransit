@@ -1,0 +1,1 @@
+# StoneAssemblies.Contrib.MassTransit
