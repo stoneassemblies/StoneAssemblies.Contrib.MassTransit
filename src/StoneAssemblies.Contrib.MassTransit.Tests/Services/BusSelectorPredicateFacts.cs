@@ -44,7 +44,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Tests.Services
             ///     The <see cref="Task" />.
             /// </returns>
             [Fact]
-            public async Task Throws_ArgumentNullException_If_Predicate_Is_Null()
+            public void Throws_ArgumentNullException_If_Predicate_Is_Null()
             {
                 Assert.Throws<ArgumentNullException>(() => new BusSelectorPredicate<DemoMessage>(null));
             }
