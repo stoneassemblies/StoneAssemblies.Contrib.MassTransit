@@ -1,11 +1,9 @@
 string NuGetVersionV2 = "";
 string SolutionFileName = "src/StoneAssemblies.Contrib.MassTransit.sln";
 
-string[] DockerFiles = new [] { 
-};
+string[] DockerFiles = System.Array.Empty<string>();
 
-string[] OutputImages = new [] { 
-};
+string[] OutputImages = System.Array.Empty<string>();
 
 string[] ComponentProjects  = new [] {
 	"./src/StoneAssemblies.Contrib.MassTransit/StoneAssemblies.Contrib.MassTransit.csproj",
