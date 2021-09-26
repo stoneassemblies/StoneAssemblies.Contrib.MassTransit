@@ -15,6 +15,3 @@ string TestProject = "src/StoneAssemblies.Contrib.MassTransit.Tests/StoneAssembl
 
 string SonarProjectKey = "stoneassemblies_StoneAssemblies.Contrib.MassTransit";
 string SonarOrganization = "stoneassemblies";
-
-string SonarProjectKey = "";
-string SonarOrganization = "";
