@@ -100,34 +100,35 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
                 typeName,
                 TypeAttributes.Public | TypeAttributes.Abstract | TypeAttributes.Interface);
             typeBuilder.AddInterfaceImplementation(typeof(IBus));
-            var dynamicType = typeBuilder.CreateType();
+            var busType = typeBuilder.CreateType();
             var addMassTransitMethod = typeof(DependencyInjectionMultiBusRegistrationExtensions).GetMethods().FirstOrDefault(
                 info => info.Name == nameof(DependencyInjectionMultiBusRegistrationExtensions.AddMassTransit)
-                        && info.ContainsGenericParameters && info.GetGenericArguments().Length == 1);
+                        && info.GetGenericArguments().Length == 1);
 
-            if (dynamicType != null && addMassTransitMethod != null)
+            if (busType != null && addMassTransitMethod != null)
             {
-                dynamicBusesAssembly.BusTypes[typeName] = dynamicType;
-
-                var makeGenericMethod = addMassTransitMethod.MakeGenericMethod(dynamicType);
-                var makeGenericType =
+                dynamicBusesAssembly.BusTypes[typeName] = busType;
+                var addMassTransitGenericMethod = addMassTransitMethod.MakeGenericMethod(busType);
+                var serviceCollectionBusConfiguratorBusType =
                     typeof(global::MassTransit.ExtensionsDependencyInjectionIntegration.MultiBus.IServiceCollectionBusConfigurator<>)
-                        .MakeGenericType(dynamicType);
-                var delegateType = typeof(Action<>).MakeGenericType(makeGenericType);
+                        .MakeGenericType(busType);
+
+                var serviceCollectionBusConfiguratorBusTypeActionType =
+                    typeof(Action<>).MakeGenericType(serviceCollectionBusConfiguratorBusType);
                 var forwardMethod = typeof(ServiceCollectionExtensions).GetMethod(
                     nameof(Forward),
-                    BindingFlags.Static | BindingFlags.NonPublic);
+                    BindingFlags.Static | BindingFlags.NonPublic)?.MakeGenericMethod(serviceCollectionBusConfiguratorBusType);
 
                 if (forwardMethod != null)
                 {
-                    var genericMethod = forwardMethod.MakeGenericMethod(makeGenericType);
-                    var @delegate = Delegate.CreateDelegate(delegateType, genericMethod);
-                    makeGenericMethod.Invoke(
-                        typeof(DependencyInjectionMultiBusRegistrationExtensions),
-                        new object[]
-                            {
-                                collection, @delegate
-                            });
+                    var forwardMethodDelegate = Delegate.CreateDelegate(
+                        serviceCollectionBusConfiguratorBusTypeActionType,
+                        forwardMethod);
+                    var parameters = new object[]
+                                         {
+                                             collection, forwardMethodDelegate
+                                         };
+                    addMassTransitGenericMethod.Invoke(typeof(DependencyInjectionMultiBusRegistrationExtensions), parameters);
                 }
             }
 
