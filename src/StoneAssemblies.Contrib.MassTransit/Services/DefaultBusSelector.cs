@@ -6,6 +6,7 @@
 
 namespace StoneAssemblies.Contrib.MassTransit.Services
 {
+    using System;
     using System.Collections.Generic;
 
     using global::MassTransit;
@@ -34,7 +35,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Services
         /// </param>
         public DefaultBusSelector(IBus bus)
         {
-            this.bus = bus;
+            this.bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }
 
         /// <summary>

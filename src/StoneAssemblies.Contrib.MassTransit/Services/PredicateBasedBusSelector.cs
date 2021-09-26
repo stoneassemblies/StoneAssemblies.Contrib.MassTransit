@@ -6,6 +6,7 @@
 
 namespace StoneAssemblies.Contrib.MassTransit.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -43,8 +44,13 @@ namespace StoneAssemblies.Contrib.MassTransit.Services
         /// </param>
         public PredicateBasedBusSelector(IEnumerable<IBus> buses, IBusSelectorPredicate<TMessage> predicate)
         {
-            this.predicate = predicate;
+            if (buses == null)
+            {
+                throw new ArgumentNullException(nameof(buses));
+            }
+
             this.buses = buses.ToList();
+            this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
 
         /// <summary>

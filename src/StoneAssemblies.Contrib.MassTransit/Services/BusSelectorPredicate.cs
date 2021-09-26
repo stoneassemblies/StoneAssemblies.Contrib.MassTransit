@@ -34,7 +34,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Services
         /// </param>
         public BusSelectorPredicate(Func<IBus, TMessage, Task<bool>> predicate)
         {
-            this.predicate = predicate;
+            this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
 
         /// <summary>
