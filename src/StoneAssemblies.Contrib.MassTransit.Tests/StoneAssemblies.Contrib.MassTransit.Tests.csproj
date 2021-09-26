@@ -36,4 +36,8 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\StoneAssemblies.Contrib.MassTransit\StoneAssemblies.Contrib.MassTransit.csproj" />
+	</ItemGroup>
+
 </Project>

@@ -12,6 +12,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using global::MassTransit;
@@ -165,16 +166,16 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
             /// <summary>
             ///     The count.
             /// </summary>
-            private static int Count;
+            private static int count;
 
             /// <summary>
             ///     Initializes a new instance of the <see cref="DynamicBusesAssembly" /> class.
             /// </summary>
             public DynamicBusesAssembly()
             {
-                var assemblyName = new AssemblyName(StoneAssembliesDynamicBuses);
+                var assemblyName = new AssemblyName($"{StoneAssembliesDynamicBuses}{Interlocked.Increment(ref count)}");
                 this.AssemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-                this.ModuleBuilder = this.AssemblyBuilder.DefineDynamicModule(assemblyName.Name + $"{Count++}.dll");
+                this.ModuleBuilder = this.AssemblyBuilder.DefineDynamicModule($"{assemblyName.Name}.dll");
             }
 
             /// <summary>

@@ -46,7 +46,9 @@ namespace StoneAssemblies.Contrib.MassTransit.Services
         /// <returns>
         ///     The <see cref="IAsyncEnumerable{IClientFactory}" />.
         /// </returns>
+#pragma warning disable 1998
         public async IAsyncEnumerable<IClientFactory> SelectClientFactories(TMessage message)
+#pragma warning restore 1998
         {
             yield return this.bus.CreateClientFactory();
         }
@@ -60,7 +62,9 @@ namespace StoneAssemblies.Contrib.MassTransit.Services
         /// <returns>
         ///     The <see cref="IAsyncEnumerable{IClientFactory}" />.
         /// </returns>
+#pragma warning disable 1998
         public async IAsyncEnumerable<IClientFactory> SelectClientFactories(object message)
+#pragma warning restore 1998
         {
             yield return this.bus.CreateClientFactory();
         }
