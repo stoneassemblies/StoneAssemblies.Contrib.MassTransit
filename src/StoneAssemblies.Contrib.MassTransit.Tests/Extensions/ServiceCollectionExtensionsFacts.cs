@@ -7,10 +7,16 @@
 namespace StoneAssemblies.Contrib.MassTransit.Tests.Extensions
 {
     using System.Linq;
+    using System.Threading.Tasks;
+
+    using Dasync.Collections;
+
+    using global::MassTransit;
 
     using Microsoft.Extensions.DependencyInjection;
 
     using StoneAssemblies.Contrib.MassTransit.Extensions;
+    using StoneAssemblies.Contrib.MassTransit.Services.Interfaces;
 
     using Xunit;
 
@@ -19,6 +25,34 @@ namespace StoneAssemblies.Contrib.MassTransit.Tests.Extensions
     /// </summary>
     public class ServiceCollectionExtensionsFacts
     {
+        public class The_AddBusSelector_Method
+        {
+            /// <summary>
+            /// The registers_ bus selector.
+            /// </summary>
+            [Fact]
+            public void Registers_BusSelector()
+            {
+                var serviceCollection = new ServiceCollection();
+                serviceCollection.AddMassTransit("FourBus", cfg => { cfg.UsingInMemory(); });
+                serviceCollection.AddMassTransit("FiveBus", cfg => { cfg.UsingInMemory(); });
+
+                serviceCollection.AddBusSelector<DemoMessage>((b, m) =>
+                    {
+                        if (b.GetType().Name == "FourBus")
+                        {
+                            return Task.FromResult(true);
+                        }
+
+                        return Task.FromResult(false);
+                    });
+
+                var busSelector = serviceCollection.BuildServiceProvider().GetService<IBusSelector<DemoMessage>>();
+
+                Assert.NotNull(busSelector);
+            }
+        }
+
         /// <summary>
         ///     The the add mass transit method.
         /// </summary>
@@ -32,7 +66,13 @@ namespace StoneAssemblies.Contrib.MassTransit.Tests.Extensions
             {
                 var invoked = false;
                 var serviceCollection = new ServiceCollection();
-                serviceCollection.AddMassTransit("ThirdBus", configurator => { invoked = true; });
+                serviceCollection.AddMassTransit(
+                    "ThirdBus",
+                    configurator =>
+                        {
+                            configurator.UsingInMemory();
+                            invoked = true;
+                        });
                 Assert.True(invoked);
             }
 
@@ -42,13 +82,11 @@ namespace StoneAssemblies.Contrib.MassTransit.Tests.Extensions
             [Fact]
             public void Registers_The_Generated_BusType()
             {
-                const string BusTypeName = "SecondBus";
-
                 var serviceCollection = new ServiceCollection();
-                serviceCollection.AddMassTransit(BusTypeName);
+                serviceCollection.AddMassTransit("SecondBus", configurator => configurator.UsingInMemory());
                 var serviceDescriptor = serviceCollection.FirstOrDefault(
                     descriptor => descriptor.ServiceType.GetGenericArguments().Length > 0
-                                  && descriptor.ServiceType.GetGenericArguments()[0].Name == BusTypeName);
+                                  && descriptor.ServiceType.GetGenericArguments()[0].Name == "SecondBus");
 
                 Assert.NotNull(serviceDescriptor);
             }

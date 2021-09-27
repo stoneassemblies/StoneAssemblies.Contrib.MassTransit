@@ -44,27 +44,40 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
         /// <param name="predicate">
         ///     The predicate.
         /// </param>
-        public static void AddBusSelector<TMessage>(
-            this IServiceCollection serviceCollection, Func<IBus, TMessage, Task<bool>> predicate = null)
+        public static void AddBusSelector<TMessage>(this IServiceCollection serviceCollection, Func<IBus, TMessage, Task<bool>> predicate)
+            where TMessage : class
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            serviceCollection.AddSingleton<IBusSelectorPredicate<TMessage>>(new BusSelectorPredicate<TMessage>(predicate));
+            serviceCollection.AddSingleton<PredicateBasedBusSelector<TMessage>>();
+            serviceCollection.AddBusSelector(provider => provider.GetService<PredicateBasedBusSelector<TMessage>>());
+        }
+
+        /// <summary>
+        /// Adds bus selector.
+        /// </summary>
+        /// <param name="serviceCollection">
+        /// The service collection.
+        /// </param>
+        /// <param name="busSelector">
+        /// The bus selector.
+        /// </param>
+        /// <typeparam name="TMessage">
+        /// The message type.
+        /// </typeparam>
+        public static void AddBusSelector<TMessage>(this IServiceCollection serviceCollection, Func<IServiceProvider, IBusSelector<TMessage>> busSelector = null)
             where TMessage : class
         {
             var dynamicBusesAssembly = DynamicBusesAssemblies.GetOrAdd(serviceCollection, sc => new DynamicBusesAssembly());
-            if (dynamicBusesAssembly.BusTypes.Values.Count > 0)
-            {
-                foreach (var busTypesValue in dynamicBusesAssembly.BusTypes.Values)
-                {
-                    var serviceDescriptor = serviceCollection.FirstOrDefault(descriptor => descriptor.ServiceType == busTypesValue);
-                    if (serviceDescriptor?.ImplementationFactory != null)
-                    {
-                        serviceCollection.AddSingleton(typeof(IBus), serviceDescriptor.ImplementationFactory);
-                    }
-                }
+            dynamicBusesAssembly.RegisterBusesIfRequired(serviceCollection);
 
-                if (predicate != null)
-                {
-                    serviceCollection.AddSingleton<IBusSelector<TMessage>, PredicateBasedBusSelector<TMessage>>();
-                    serviceCollection.AddSingleton<IBusSelectorPredicate<TMessage>>(new BusSelectorPredicate<TMessage>(predicate));
-                }
+            if (busSelector != null)
+            {
+                serviceCollection.AddSingleton(busSelector);
             }
             else
             {
@@ -199,6 +212,26 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
             ///     Gets the assembly builder.
             /// </summary>
             private AssemblyBuilder AssemblyBuilder { get; }
+
+            /// <summary>
+            /// The register buses.
+            /// </summary>
+            /// <param name="serviceCollection">
+            /// The service collection.
+            /// </param>
+            public void RegisterBusesIfRequired(IServiceCollection serviceCollection)
+            {
+                foreach (var busTypesValue in this.BusTypes.Values)
+                {
+                    var serviceDescriptor = serviceCollection.FirstOrDefault(descriptor => descriptor.ServiceType == busTypesValue);
+                    if (serviceDescriptor != null && serviceCollection.FirstOrDefault(
+                            descriptor => descriptor.ServiceType == typeof(IBus)
+                                          && descriptor.ImplementationFactory == serviceDescriptor.ImplementationFactory) == null)
+                    {
+                        serviceCollection.AddSingleton(typeof(IBus), serviceDescriptor.ImplementationFactory);
+                    }
+                }
+            }
         }
     }
 }

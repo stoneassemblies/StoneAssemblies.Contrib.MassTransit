@@ -14,9 +14,13 @@ namespace StoneAssemblies.Contrib.MassTransit.Tests.Services
 
     using global::MassTransit;
 
+    using Microsoft.Extensions.DependencyInjection;
+
     using Moq;
 
+    using StoneAssemblies.Contrib.MassTransit.Extensions;
     using StoneAssemblies.Contrib.MassTransit.Services;
+    using StoneAssemblies.Contrib.MassTransit.Services.Interfaces;
 
     using Xunit;
 
@@ -116,6 +120,30 @@ namespace StoneAssemblies.Contrib.MassTransit.Tests.Services
                 new BusSelectorPredicate<DemoMessage>((b, m) => Task.FromResult(true)));
             var clientFactories = await defaultBusSelector.SelectClientFactories(new DemoMessage()).ToListAsync();
             Assert.NotEmpty(clientFactories);
+        }
+
+        [Fact]
+        public async Task Returns_The_ClientFactories_According_To_The_Predicate()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddMassTransit("SixBus", cfg => { cfg.UsingInMemory(); });
+            serviceCollection.AddMassTransit("SevenBus", cfg => { cfg.UsingInMemory(); });
+
+            serviceCollection.AddBusSelector<DemoMessage>(
+                (b, m) =>
+                    {
+                        if (b.GetType().GetInterface("SixBus") != null)
+                        {
+                            return Task.FromResult(true);
+                        }
+
+                        return Task.FromResult(false);
+                    });
+
+            var busSelector = serviceCollection.BuildServiceProvider().GetService<IBusSelector<DemoMessage>>();
+
+            var clientFactories = await busSelector.SelectClientFactories(new DemoMessage()).ToListAsync();
+            Assert.Equal(1, clientFactories?.Count);
         }
     }
 }
