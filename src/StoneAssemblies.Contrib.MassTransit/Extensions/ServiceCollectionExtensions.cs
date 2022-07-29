@@ -158,13 +158,10 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
         /// </typeparam>
         private static void Forward<T>(T configure)
         {
-            var fieldInfo = typeof(RegistrationConfigurator).GetField(
-                "_collection",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             IServiceCollection serviceCollection = null;
             if (configure is RegistrationConfigurator registrationConfigurator)
             {
-                serviceCollection = fieldInfo.GetValue(registrationConfigurator) as IServiceCollection;
+                serviceCollection = registrationConfigurator.GetServiceCollection();
             }
 
             if (configure is IBusRegistrationConfigurator serviceCollectionBusConfigurator)
