@@ -31,7 +31,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Tests.Extensions
             /// The registers_ bus selector.
             /// </summary>
             [Fact]
-            public void Registers_BusSelector()
+            public async Task Registers_BusSelector()
             {
                 var serviceCollection = new ServiceCollection();
                 serviceCollection.AddMassTransit("FourBus", cfg => { cfg.UsingInMemory(); });

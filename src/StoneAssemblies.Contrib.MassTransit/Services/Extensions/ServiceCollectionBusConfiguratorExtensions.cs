@@ -9,7 +9,6 @@ namespace StoneAssemblies.Contrib.MassTransit.Services.Extensions
     using System;
 
     using global::MassTransit;
-    using global::MassTransit.ExtensionsDependencyInjectionIntegration;
 
     using StoneAssemblies.Contrib.MassTransit.Extensions;
 
@@ -30,7 +29,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Services.Extensions
         /// <typeparam name="TMessage">
         ///     The message type
         /// </typeparam>
-        public static void AddDefaultRequestClient<TMessage>(this IServiceCollectionBusConfigurator @this, RequestTimeout timeout = default)
+        public static void AddDefaultRequestClient<TMessage>(this IBusRegistrationConfigurator @this, RequestTimeout timeout = default)
             where TMessage : class
         {
             @this.AddRequestClient<TMessage>(new Uri($"queue:{typeof(TMessage).GetFlatName()}"), timeout);

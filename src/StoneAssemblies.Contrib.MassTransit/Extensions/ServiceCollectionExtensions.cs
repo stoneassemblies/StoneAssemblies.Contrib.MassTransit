@@ -16,8 +16,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
     using System.Threading.Tasks;
 
     using global::MassTransit;
-    using global::MassTransit.ExtensionsDependencyInjectionIntegration;
-    using global::MassTransit.MultiBus;
+    using global::MassTransit.Configuration;
 
     using Microsoft.Extensions.DependencyInjection;
 
@@ -103,7 +102,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
         ///     The <see cref="IServiceCollection" />.
         /// </returns>
         public static IServiceCollection AddMassTransit(
-            this IServiceCollection collection, string typeName, Action<IServiceCollectionBusConfigurator> configure = null)
+            this IServiceCollection collection, string typeName, Action<IBusRegistrationConfigurator> configure = null)
         {
             var dynamicBusesAssembly = DynamicBusesAssemblies.GetOrAdd(collection, sc => new DynamicBusesAssembly());
 
@@ -114,8 +113,8 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
                 TypeAttributes.Public | TypeAttributes.Abstract | TypeAttributes.Interface);
             typeBuilder.AddInterfaceImplementation(typeof(IBus));
             var busType = typeBuilder.CreateType();
-            var addMassTransitMethod = typeof(DependencyInjectionMultiBusRegistrationExtensions).GetMethods().FirstOrDefault(
-                info => info.Name == nameof(DependencyInjectionMultiBusRegistrationExtensions.AddMassTransit)
+            var addMassTransitMethod = typeof(DependencyInjectionRegistrationExtensions).GetMethods().FirstOrDefault(
+                info => info.Name == nameof(DependencyInjectionRegistrationExtensions.AddMassTransit)
                         && info.GetGenericArguments().Length == 1);
 
             if (busType != null && addMassTransitMethod != null)
@@ -123,7 +122,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
                 dynamicBusesAssembly.BusTypes[typeName] = busType;
                 var addMassTransitGenericMethod = addMassTransitMethod.MakeGenericMethod(busType);
                 var serviceCollectionBusConfiguratorBusType =
-                    typeof(global::MassTransit.ExtensionsDependencyInjectionIntegration.MultiBus.IServiceCollectionBusConfigurator<>)
+                    typeof(IBusRegistrationConfigurator<>)
                         .MakeGenericType(busType);
 
                 var serviceCollectionBusConfiguratorBusTypeActionType =
@@ -134,6 +133,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
 
                 if (forwardMethod != null)
                 {
+                    
                     var forwardMethodDelegate = Delegate.CreateDelegate(
                         serviceCollectionBusConfiguratorBusTypeActionType,
                         forwardMethod);
@@ -141,7 +141,7 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
                                          {
                                              collection, forwardMethodDelegate
                                          };
-                    addMassTransitGenericMethod.Invoke(typeof(DependencyInjectionMultiBusRegistrationExtensions), parameters);
+                    addMassTransitGenericMethod.Invoke(typeof(DependencyInjectionRegistrationExtensions), parameters);
                 }
             }
 
@@ -158,10 +158,19 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
         /// </typeparam>
         private static void Forward<T>(T configure)
         {
-            if (configure is IServiceCollectionBusConfigurator serviceCollectionBusConfigurator)
+            var fieldInfo = typeof(RegistrationConfigurator).GetField(
+                "_collection",
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+            IServiceCollection serviceCollection = null;
+            if (configure is RegistrationConfigurator registrationConfigurator)
+            {
+                serviceCollection = fieldInfo.GetValue(registrationConfigurator) as IServiceCollection;
+            }
+
+            if (configure is IBusRegistrationConfigurator serviceCollectionBusConfigurator)
             {
                 var genericArguments = configure.GetType().GetGenericArguments();
-                var dynamicBusesAssembly = DynamicBusesAssemblies[serviceCollectionBusConfigurator.Collection];
+                var dynamicBusesAssembly = DynamicBusesAssemblies[serviceCollection];
                 var action = dynamicBusesAssembly.Configures[genericArguments[0].Name];
                 action?.Invoke(serviceCollectionBusConfigurator);
             }
@@ -200,8 +209,8 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
             /// <summary>
             ///     Gets the configures.
             /// </summary>
-            public Dictionary<string, Action<IServiceCollectionBusConfigurator>> Configures { get; } =
-                new Dictionary<string, Action<IServiceCollectionBusConfigurator>>();
+            public Dictionary<string, Action<IBusRegistrationConfigurator>> Configures { get; } =
+                new Dictionary<string, Action<IBusRegistrationConfigurator>>();
 
             /// <summary>
             ///     Gets the module builder.
@@ -233,5 +242,9 @@ namespace StoneAssemblies.Contrib.MassTransit.Extensions
                 }
             }
         }
+    }
+
+    public interface ISuperBus : IBus
+    {
     }
 }
